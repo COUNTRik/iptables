@@ -1,0 +1,80 @@
+---
+- name: Install package
+  hosts: all
+  become: true
+  
+  tasks:
+    - name: Install user package
+      yum:
+        name:
+          - mc
+          - vim
+          # - iptables-services
+        state: latest
+      tags:
+        - package
+
+# - name: Configure iptables-services
+#   hosts:
+#     - inet2Router
+#     - inetRouter
+#     - centralRouter
+#   become: true
+
+#   tasks:
+#     - name: Stop firewalld
+#       systemd:
+#         name: firewalld
+#         state: stopped
+    
+#     - name: Disable firewalld
+#       systemd:
+#         name: firewalld
+#         enabled: no
+
+#     - name: Start iptables
+#       systemd:
+#         name: iptables
+#         state: started
+    
+#     - name: Enable iptables
+#       systemd:
+#         name: iptables
+#         enabled: yes
+
+- name: Enable forwarding ipv4
+  hosts:
+    - inet2Router
+    - inetRouter
+    - centralRouter
+  become: true
+
+  tasks:
+    - name: enable forwarding ipv4
+      shell: echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+    
+    - name: restrat network
+      systemd:
+        name: network
+        state: restarted
+      tags:
+        - forwarding
+
+- name: Install nginx
+  hosts:
+    - servers
+  become: true
+
+  tasks:
+    - name: Install EPEL Repo package from standart repo
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: latest
+      tags:
+        - package
+        - nginx

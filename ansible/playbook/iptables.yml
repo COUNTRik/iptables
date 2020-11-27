@@ -1,0 +1,63 @@
+---
+# - name: Restart iptables
+#   hosts:
+#     - inet
+#     - local
+#     - servers
+#   become: true
+
+#   tasks:
+#     - name: restrat iptables
+#       systemd:
+#         name: iptables
+#         state: restarted
+#       tags:
+#         - restart iptables
+
+- name: inetRouter iptables
+  hosts: inetRouter
+  become: true
+
+  tasks:
+    - name: remove INPUT
+      shell: iptables -F INPUT
+    - name: remove OUTPUT
+      shell: iptables -F OUTPUT
+    - name: remove FORWARD
+      shell: iptables -F FORWARD
+    - name: remove other CHAINS
+      shell: iptables -X
+
+    - name: add iptables MASQUERADE
+      shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+      
+    - name: add iptables TCP ESTABLISHED
+      shell: iptables -A INPUT -p tcp -m state --state ESTABLISHED -j ACCEPT
+
+    - name: add iptables UDP ESTABLISHED
+      shell: iptables -A INPUT -p udp -m state --state ESTABLISHED -j ACCEPT
+
+    - name: add iptables BLOCK
+      shell: iptables -A INPUT -p icmp --icmp-type echo-request -m length ! --length 142 -m recent --name BLOCK --set
+
+    - name: add iptables OPEN
+      shell: iptables -A INPUT -p icmp --icmp-type echo-request -m length   --length 142 -m ttl --ttl-gt 65 -m recent --name OPEN  --set
+
+    - name: add iptables ACCEPT for OPEN
+      shell: iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --name OPEN  --rcheck --seconds 30 -j ACCEPT
+
+    - name: add iptables DROP for BLOCK
+      shell: iptables -A INPUT -p tcp --dport 22 -m recent --name BLOCK --rcheck --seconds 60 -j DROP
+
+    - name: add iptables DROP for dport 22
+      shell: iptables -A INPUT -p tcp --dport 22 -j DROP
+
+# - name: inet2Router iptables
+#   hosts: inet2Router
+#   become: true
+
+#   tasks:
+      
+#     - name: add iptables MASQUERADE
+#       shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+

@@ -1,0 +1,53 @@
+---
+- name: Restart network
+  hosts:
+    - inet
+    - local
+    - servers
+  become: true
+
+  tasks:
+    - name: restrat network
+      systemd:
+        name: network
+        state: restarted
+      tags:
+        - restart network
+
+
+- name: inet2Router route
+  hosts: inet2Router
+  become: true
+
+  tasks:
+    - name: add route inetRouter for central networks
+      shell: ip route add 192.168.3.0/28 via 192.168.255.3 dev eth1
+
+
+- name: inetRouter route
+  hosts: inetRouter
+  become: true
+
+  tasks:
+    - name: add route inetRouter for central networks
+      shell: ip route add 192.168.3.0/28 via 192.168.255.3 dev eth1
+
+- name: centralRouter route
+  hosts: centralRouter
+  become: true
+
+  tasks:
+    - name: del default route
+      shell: ip route del default via 10.0.2.2 dev eth0
+    - name: add default inetRouter
+      shell: ip route add default via 192.168.255.1 dev eth1
+
+- name: centralServer route
+  hosts: centralServer
+  become: true
+
+  tasks:
+    - name: del default route
+      shell: ip route del default via 10.0.2.2 dev eth0
+    - name: add default route centralRoute
+      shell: ip route add default via 192.168.3.1 dev eth1  
