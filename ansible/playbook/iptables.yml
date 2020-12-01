@@ -1,19 +1,4 @@
 ---
-# - name: Restart iptables
-#   hosts:
-#     - inet
-#     - local
-#     - servers
-#   become: true
-
-#   tasks:
-#     - name: restrat iptables
-#       systemd:
-#         name: iptables
-#         state: restarted
-#       tags:
-#         - restart iptables
-
 - name: inetRouter iptables
   hosts: inetRouter
   become: true
@@ -25,6 +10,8 @@
       shell: iptables -F OUTPUT
     - name: remove FORWARD
       shell: iptables -F FORWARD
+    - name: remove NAT
+      shell: iptables -F -t nat
     - name: remove other CHAINS
       shell: iptables -X
 
@@ -50,14 +37,46 @@
       shell: iptables -A INPUT -p tcp --dport 22 -m recent --name BLOCK --rcheck --seconds 60 -j DROP
 
     - name: add iptables DROP for dport 22
-      shell: iptables -A INPUT -p tcp --dport 22 -j DROP
+      shell: iptables -A INPUT -i eth1 -p tcp --dport 22 -j DROP
 
-# - name: inet2Router iptables
-#   hosts: inet2Router
-#   become: true
 
-#   tasks:
+- name: inet2Router iptables
+  hosts: inet2Router
+  become: true
+
+  tasks:
+    - name: remove INPUT
+      shell: iptables -F INPUT
+    - name: remove OUTPUT
+      shell: iptables -F OUTPUT
+    - name: remove FORWARD
+      shell: iptables -F FORWARD
+    - name: remove NAT
+      shell: iptables -F -t nat
+    - name: remove other CHAINS
+      shell: iptables -X
+
+    - name: add iptables PREROUTING DNAT 
+      shell: iptables -t nat -A PREROUTING -i eth2 --dst 172.28.128.3 -p tcp --dport 8080 -j DNAT --to-destination 192.168.3.2:80
+
+
+- name: centralServer restart nginx
+  hosts: centralServer
+  become: true
+
+  tasks:
+    - name: remove INPUT
+      shell: iptables -F INPUT
+    - name: remove OUTPUT
+      shell: iptables -F OUTPUT
+    - name: remove FORWARD
+      shell: iptables -F FORWARD
+    - name: remove NAT
+      shell: iptables -F -t nat
+    - name: remove other CHAINS
+      shell: iptables -X
       
-#     - name: add iptables MASQUERADE
-#       shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted

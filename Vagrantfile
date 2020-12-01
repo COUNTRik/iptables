@@ -9,6 +9,7 @@ MACHINES = {
       :box_name => "centos/7",
       :net => [
                  {ip: '192.168.255.2', adapter: 2, netmask: "255.255.255.240", virtualbox__intnet: "router-net"},
+                 {ip: '172.28.128.3', adapter: 3, netmask: "255.255.255.240"},
               ]   
 },
 
@@ -31,6 +32,7 @@ MACHINES = {
       :box_name => "centos/7",
       :net => [
                  {ip: '192.168.3.2', adapter: 2, netmask: "255.255.255.240", virtualbox__intnet: "local-net"},
+                 
               ]
 },
   
@@ -49,13 +51,9 @@ Vagrant.configure("2") do |config|
           box.vm.network "private_network", ipconf
         end
         
-        if boxconfig.key?(:public)
-          box.vm.network "public_network", boxconfig[:public]
+        box.vm.provision "ansible" do |ansible|
+          ansible.playbook = "ansible/playbook/provision.yml"
         end
-        
-        # box.vm.provision "ansible" do |ansible|
-        #   ansible.playbook = "ansible/playbook/provision.yml"
-        # end
                 
     end
 

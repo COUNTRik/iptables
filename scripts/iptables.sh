@@ -42,6 +42,6 @@ iptables -A INPUT -p tcp --dport 22 -j DROP
 # ping -c 1 -s 114 -t 89 192.168.255.1
 
 #inet2Router
-iptables -t nat -A PREROUTING --dst 10.0.0.2 -p tcp --dport 8080 -j DNAT --to-destination 192.168.3.2:80
-iptables -t nat -A POSTROUTING --dst 192.168.3.3 -p tcp --dport 80 -j SNAT --to-source 10.0.0.2:8080
-iptables -t nat -A OUTPUT --dst 192.168.3.2 -p tcp --dport 80 -j DNAT 10.0.0.2:8080
+iptables -t nat -A PREROUTING --dst 172.28.128.3 -p tcp --dport 8080 -j DNAT --to-destination 192.168.3.2:80
+iptables -t nat -A POSTROUTING --dst 192.168.3.2 -p tcp --dport 80 -j SNAT --to-source 172.28.128.3:8080
+iptables -t nat -A OUTPUT --dst 192.168.3.2 -p tcp --dport 80 -j DNAT 172.28.128.3:8080

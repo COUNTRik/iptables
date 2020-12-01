@@ -41,6 +41,8 @@
       shell: ip route del default via 10.0.2.2 dev eth0
     - name: add default inetRouter
       shell: ip route add default via 192.168.255.1 dev eth1
+    - name: add route centralRouter for inet2 networks
+      shell: ip route add 172.28.128.0/28 via 192.168.255.2 dev eth1
 
 - name: centralServer route
   hosts: centralServer
@@ -50,4 +52,4 @@
     - name: del default route
       shell: ip route del default via 10.0.2.2 dev eth0
     - name: add default route centralRoute
-      shell: ip route add default via 192.168.3.1 dev eth1  
+      shell: ip route add default via 192.168.3.1 dev eth1
